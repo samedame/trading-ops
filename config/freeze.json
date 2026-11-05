@@ -1,0 +1,18 @@
+{
+  "start": "2026-11-05",
+  "days": 90,
+  "allowed": [
+    "Fix bugs that do not change a bot's signal, parameters or sizing",
+    "Reliability work: alerts on silent failures, retries, scheduling, merging draft PR #3 on daytrading_bot",
+    "Logging, journaling, chain snapshots, fill and slippage capture",
+    "Setting ACCOUNT_CAPITAL_USD and the kill-switch thresholds that are still null",
+    "Reading the scorecard and writing down what you see"
+  ],
+  "forbidden": [
+    "New bots or new strategy sweeps looking for a new edge",
+    "Changing any strategy parameter, threshold or profile of a bot that is collecting its forward test",
+    "New aggregation or ranking layers on top of bots that have no live record",
+    "Funding a bot whose scorecard status is BLOCKED, INSUFFICIENT DATA, PAUSE, RETIRE or UNDERPERFORMING"
+  ],
+  "exception_rule": "An exception is allowed only if you log it first (freeze exception) with the reason and what result would make you reverse it."
+}

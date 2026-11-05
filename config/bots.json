@@ -1,0 +1,90 @@
+{
+  "_comment": "Every threshold below is copied from a verdict in your project. Null means the verdict gave none: add one BEFORE the first live trade, not after. Units must match what each bot logs (bp of the underlying, R, or usd).",
+  "global": {
+    "min_n": 30,
+    "bootstrap_draws": 5000,
+    "seed": 20261104,
+    "combined_dd_floor_usd": null
+  },
+  "bots": {
+    "apex_master_v2": {
+      "unit": "bp",
+      "backtest_mean": 18.19,
+      "backtest_ci95": [5.4, 31.3],
+      "haircut": 0.5,
+      "min_n": 40,
+      "pause_cum_floor": -1600,
+      "retire_at_n": 40,
+      "retire_if_mean_le": 0,
+      "stale_days": null,
+      "source": "claude/apex-master-v2-regime-ibs-verdict-2026-11-04.md",
+      "notes": "Rule: prior VIX close >= 20 AND prior-day IBS < 0.10, first of SPY/QQQ/IWM, long open to close. Paper-trade every signal day. Pause below -1,600 bp cumulative; retire at 40 trades if mean <= 0; test IWM exclusion once at 40 trades. 50% haircut applied because the VIX split was found post-hoc and ~130 tests were run. About 24 signals/yr, so expect 40 trades to take ~20 months."
+    },
+    "apex_master_v1": {
+      "unit": "R",
+      "backtest_mean": -0.02,
+      "haircut": 0.0,
+      "min_n": 30,
+      "max_dd_floor": -8,
+      "source": "claude/apex-master-backtest-verdict-2026-11-04.md",
+      "notes": "Benchmark is the live-executable first_fire rule (reliability -0.020R), NOT the published +0.306R, which needs whole-day hindsight. The Section 9 drawdown bar is -8R; the backtest already breached it (-12.8R). Decide the profile (reliability vs runner) before the first trade; changing later restarts the count."
+    },
+    "tier1_bot_h8": {
+      "unit": "usd",
+      "backtest_mean": null,
+      "blocked": "Strike rule selects ~2.21% OTM, a ~1-delta put, where the 33-year result is -$0.59/trade. Do not fund. Re-specify as a fixed 3.5-4.0% OTM distance and log the FILLS ladder first (h8-full-backtest-verdict-2026-11-01).",
+      "source": "claude/h8-full-backtest-verdict-2026-11-01.md"
+    },
+    "condor": {
+      "unit": "usd",
+      "backtest_mean": null,
+      "min_n": 20,
+      "source": "claude/condor-integrity-audit-2026-10-28.md",
+      "notes": "0 of 7 real credit checks reached OK ($0.03-$0.27 vs the $0.44 bar); 0 logged fills. Patches in draft PR #3 (silent-failure alerts, kill-switch scaling) are NOT merged: merge them before relying on this bot."
+    },
+    "premium_sleeve": {
+      "unit": "usd",
+      "backtest_mean": null,
+      "min_n": 30,
+      "source": "claude/vol-regime-gate-edge-audit-verdict-2026-11-01.md",
+      "notes": "Its only evidence is the index-level PUT result (holdout Sharpe 0.56, CAGR 6.9%, max DD -29%), not this spread structure with PT/SL. The gate in front of it was audited Tier D/E: gate (a) KILL, gate (b1) shelve as a return claim. Treat the gate as a risk preference, not an edge."
+    },
+    "ibs": {
+      "unit": "unset",
+      "backtest_mean": null,
+      "min_n": 30,
+      "stale_days": null,
+      "source": "claude/callout-bot-preregistration (callout-bot-sweep)",
+      "notes": "Only strategy that passed every pre-registered gate. Fill backtest_mean and the unit from your IBS pre-registration so this scorecard can judge it."
+    },
+    "momentum_sleeve": {
+      "unit": "unset",
+      "backtest_mean": null,
+      "min_n": 30,
+      "review_after": "2027-09-15",
+      "review_note": "Re-run the bootstrap check (CI on Sharpe improvement over IBS-alone included zero). Also confirm fractional-share support before any real capital.",
+      "source": "claude/momentum-sleeve-verdict.md",
+      "notes": "Shadow/paper only."
+    },
+    "apex_chronos": {
+      "unit": "unset",
+      "backtest_mean": null,
+      "min_n": 30,
+      "source": "claude/apex-chronos-improvement-verdict-2026-10-21.md",
+      "notes": "Intraday modules: the audit found no edge on hourly data (108-rule scan, 0 Holm survivors). Add a benchmark from your Chronos verdict before trusting any status here."
+    },
+    "pre_earnings_straddle": {
+      "unit": "usd",
+      "backtest_mean": null,
+      "min_n": 30,
+      "notes": "Long volatility, alert-and-paper only."
+    },
+    "bot_selector": {
+      "unit": "unset",
+      "backtest_mean": null,
+      "min_n": 30,
+      "source": "claude/bot-selector-build-2026-10-27.md",
+      "notes": "Replay showed no demonstrated value (n=5, CI includes 0). Log only its decisions and judge them against same-board alternatives; do not trade from it."
+    }
+  }
+}
