@@ -1,0 +1,22 @@
+name: Tradier check (manual)
+
+# Manual only. Posts nothing and writes nothing. Runs scripts/tradier_check.py with this repo's TRADIER_TOKEN secret and
+# fails (red X) if the token is rejected, the chain parser breaks, or quotes are stale while the market is open.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Live-data check
+        env:
+          TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
+        run: python scripts/tradier_check.py
