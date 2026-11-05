@@ -13,6 +13,17 @@ Window: 2026-11-05 to 2027-02-03 (`python -m trading_ops freeze status`).
    - `python -m trading_ops size shares --price 755 --weight 0.5` (add `--fractional` if your broker allows it)
 5. Fill in the `SET BEFORE FIRST TRADE` cells in `docs/GATES.md` and the null benchmarks in `config/bots.json`.
 
+## Tradier token (optional, improves the snapshots)
+
+Get the token from web.tradier.com: your name (top right) -> API Access -> Production Account Access. It gives full access to the account, so never paste it into chat or commit it. Then, from this repo on your own machine with `gh` logged in:
+
+```
+python scripts/set_tradier_secret.py            # dry run: shows which repos reference a Tradier secret
+python scripts/set_tradier_secret.py --apply    # hidden prompt for the token, verifies it, sets it in each repo
+```
+
+The script sets the secret under whatever name each repo's workflows use (for example `TRADIER_TOKEN` or `TRADIER_API_KEY`). The snapshot workflow here uses Tradier automatically when `TRADIER_TOKEN` exists and falls back to yfinance when it doesn't. A repo that reads Tradier credentials some other way is not detected: use `--repos name --secret-name NAME`.
+
 ## Every trading day (5 minutes)
 
 - Each alert you see: `signal --bot <name> --symbol SPY --grade <n>`.

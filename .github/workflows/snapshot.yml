@@ -51,10 +51,14 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         env:
           TRADING_OPS_DB: ${{ runner.temp }}/snap.db
+          TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
+          # Uses Tradier when the TRADIER_TOKEN secret exists, otherwise falls back to yfinance.
+          PROVIDER: ${{ secrets.TRADIER_TOKEN && 'tradier' || 'yfinance' }}
         run: |
           set -euo pipefail
           day=$(TZ=America/New_York date +%F)
-          python -m trading_ops snapshot --symbols SPY,QQQ,IWM --slot close --max-dte 30
+          echo "Provider: $PROVIDER"
+          python -m trading_ops snapshot --provider "$PROVIDER" --symbols SPY,QQQ,IWM --slot close --max-dte 30
           mkdir -p data/chains
           python -m trading_ops export-chains --date "$day" --slot close --out "data/chains/${day}_close.csv.gz"
           python -m trading_ops ladder --date "$day" --slot close > "data/chains/${day}_h8_ladder.json"
