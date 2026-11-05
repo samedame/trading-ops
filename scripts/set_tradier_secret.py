@@ -33,7 +33,13 @@ import urllib.request
 from typing import Callable, Optional
 
 SECRET_RE = re.compile(r"secrets\.([A-Za-z0-9_]*TRADIER[A-Za-z0-9_]*)", re.IGNORECASE)
+URL_NAME_RE = re.compile(r"(URL|HOST|ENDPOINT|BASE)", re.IGNORECASE)
 Runner = Callable[..., tuple]
+
+
+def is_url_name(name: str) -> bool:
+    """TRADIER_BASE_URL and friends hold an address, not a credential. They must never receive the token."""
+    return bool(URL_NAME_RE.search(name))
 
 
 def default_run(cmd: list, input_text: Optional[str] = None) -> tuple:
@@ -84,7 +90,7 @@ def existing_secrets(owner: str, repo: str, run: Runner) -> set:
 
 
 def build_plan(owner: str, repos: list, run: Runner, overwrite: bool = False,
-               forced_name: Optional[str] = None, explicit: bool = False) -> list:
+               forced_name: Optional[str] = None, explicit: bool = False, base_url: Optional[str] = None) -> list:
     plan = []
     for repo in repos:
         names = secrets_used(owner, repo, run)
@@ -97,10 +103,15 @@ def build_plan(owner: str, repos: list, run: Runner, overwrite: bool = False,
             continue
         have = existing_secrets(owner, repo, run)
         for name in sorted(names):
-            if name in have and not overwrite:
-                plan.append({"repo": repo, "name": name, "action": "skip: already set (use --overwrite)"})
+            if is_url_name(name) and not base_url:
+                plan.append({"repo": repo, "name": name, "kind": "url",
+                             "action": "skip: URL setting, not a token (pass --base-url to set it)"})
+            elif name in have and not overwrite:
+                plan.append({"repo": repo, "name": name, "kind": "url" if is_url_name(name) else "token",
+                             "action": "skip: already set (use --overwrite)"})
             else:
-                plan.append({"repo": repo, "name": name, "action": "replace" if name in have else "set"})
+                plan.append({"repo": repo, "name": name, "kind": "url" if is_url_name(name) else "token",
+                             "action": "replace" if name in have else "set"})
     return plan
 
 
@@ -134,13 +145,15 @@ def main(argv=None, run: Runner = default_run, verify: Callable = verify_token,
     ap.add_argument("--apply", action="store_true", help="actually set secrets (default is a dry run)")
     ap.add_argument("--overwrite", action="store_true", help="replace secrets that already exist")
     ap.add_argument("--include-forks", action="store_true")
+    ap.add_argument("--base-url", help="value for URL-type secrets such as TRADIER_BASE_URL. Without this they are "
+                                       "skipped, never filled with the token")
     ap.add_argument("--no-verify", action="store_true", help="skip the check that the token works against Tradier")
     args = ap.parse_args(argv)
 
     explicit = bool(args.repos)
     repos = [r.strip() for r in args.repos.split(",") if r.strip()] if explicit else \
         list_repos(args.owner, run, args.include_forks)
-    plan = build_plan(args.owner, repos, run, args.overwrite, args.secret_name, explicit)
+    plan = build_plan(args.owner, repos, run, args.overwrite, args.secret_name, explicit, args.base_url)
 
     print(f"Scanned {len(repos)} repo(s) under {args.owner}.")
     if not plan:
@@ -157,8 +170,8 @@ def main(argv=None, run: Runner = default_run, verify: Callable = verify_token,
         print("\nNothing to write.")
         return 0
 
-    token = token_source()
-    if not args.no_verify:
+    token = token_source() if any(p.get("kind") != "url" for p in todo) else ""
+    if token and not args.no_verify:
         state = verify(token)
         if state == "invalid":
             print("error: Tradier rejected this token (401/403). Nothing was written.", file=sys.stderr)
@@ -167,7 +180,8 @@ def main(argv=None, run: Runner = default_run, verify: Callable = verify_token,
               "could not reach Tradier to verify; continuing.")
     failures = 0
     for p in todo:
-        rc, _, err = run(["gh", "secret", "set", p["name"], "--repo", f"{args.owner}/{p['repo']}"], token)
+        value = args.base_url if p.get("kind") == "url" else token
+        rc, _, err = run(["gh", "secret", "set", p["name"], "--repo", f"{args.owner}/{p['repo']}"], value)
         ok = rc == 0
         failures += not ok
         print(f"  {'ok  ' if ok else 'FAIL'} {args.owner}/{p['repo']} {p['name']}"

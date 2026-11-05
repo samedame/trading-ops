@@ -14,7 +14,7 @@ SPEC.loader.exec_module(mod)
 TOKEN = "TESTTOKEN1234567890abcd"
 
 WORKFLOWS = {
-    "daytrading_bot": {".github/workflows/entry.yml": "env:\n  K: ${{ secrets.TRADIER_API_KEY }}\n  D: ${{ secrets.DISCORD_WEBHOOK }}\n"},
+    "daytrading_bot": {".github/workflows/entry.yml": "env:\n  K: ${{ secrets.TRADIER_API_KEY }}\n  U: ${{ secrets.TRADIER_BASE_URL }}\n  D: ${{ secrets.DISCORD_WEBHOOK }}\n"},
     "trading-ops": {".github/workflows/snapshot.yml": "TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}\n"},
     "ibs-callout-bot": {".github/workflows/ibs-bot.yml": "x: ${{ secrets.DISCORD_WEBHOOK }}\n"},
     "no-workflows": {},
@@ -70,6 +70,7 @@ def test_dry_run_writes_nothing_and_never_asks_for_token(capsys):
     assert "daytrading_bot" in out and "TRADIER_API_KEY" in out and "Dry run" in out
     assert "a-fork" not in out and "old" not in out.split("Scanned")[1].split("\n", 1)[1]  # fork + archived excluded
     assert "already set" in out  # trading-ops secret exists
+    assert "URL setting, not a token" in out  # TRADIER_BASE_URL is never treated as a credential
 
 
 def test_apply_sets_each_detected_name_and_passes_token_on_stdin_only(capsys):
@@ -146,3 +147,33 @@ def test_verify_token_classifies_http_errors():
     assert mod.verify_token("t", opener_500) == "unreachable"
     assert mod.verify_token("t", opener_down) == "unreachable"
     assert mod.verify_token("t", lambda req, timeout=0: Ok()) == "valid"
+
+
+def pairs(gh):
+    return list(zip(sets(gh), gh.stdin_seen))
+
+
+def test_url_secret_never_receives_token_even_with_overwrite():
+    gh = FakeGh()
+    mod.main(["--apply", "--overwrite"], run=gh, token_source=lambda: TOKEN, verify=lambda t: "valid")
+    got = pairs(gh)
+    assert got, "expected some writes"
+    assert not any(n == "TRADIER_BASE_URL" for (_, n), _ in got)
+    assert all(v == TOKEN for _, v in got)
+
+
+def test_base_url_option_sets_url_secret_with_the_url_not_the_token():
+    gh = FakeGh()
+    mod.main(["--apply", "--base-url", "https://api.tradier.com/v1"], run=gh, token_source=lambda: TOKEN,
+             verify=lambda t: "valid")
+    got = pairs(gh)
+    assert (("samedame/daytrading_bot", "TRADIER_BASE_URL"), "https://api.tradier.com/v1") in got
+    assert all(v != TOKEN for (_, n), v in got if n == "TRADIER_BASE_URL")
+    assert (("samedame/daytrading_bot", "TRADIER_API_KEY"), TOKEN) in got
+
+
+def test_is_url_name():
+    for n in ("TRADIER_BASE_URL", "TRADIER_HOST", "TRADIER_ENDPOINT"):
+        assert mod.is_url_name(n)
+    for n in ("TRADIER_API_KEY", "TRADIER_TOKEN", "TRADIER_ACCESS_TOKEN"):
+        assert not mod.is_url_name(n)
