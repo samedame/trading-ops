@@ -124,7 +124,11 @@ def main(argv: list[str] | None = None) -> int:
         n = snapshot.snapshot(conn, prov, [s.strip() for s in args.symbols.split(",")], args.slot, args.max_dte)
         print(f"stored {n} quotes")
     elif args.cmd == "export-chains":
-        print(f"exported {snapshot.export_chains(conn, args.date, args.slot, args.out)} rows")
+        try:
+            print(f"exported {snapshot.export_chains(conn, args.date, args.slot, args.out)} rows")
+        except ValueError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
     elif args.cmd == "ladder":
         out(snapshot.put_ladder_bp(conn, args.date, args.underlying, args.slot))
     elif args.cmd == "scorecard":

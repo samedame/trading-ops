@@ -127,7 +127,23 @@ def test_export_chains_roundtrip(conn, tmp_path):
     with gzip.open(out, "rt") as fh:
         rows = list(csv.DictReader(fh))
     assert len(rows) == n and set(rows[0]) == set(snapshot.EXPORT_COLUMNS)
-    assert snapshot.export_chains(conn, "2026-11-05", "close", str(tmp_path / "e.csv.gz")) == 0
+    with pytest.raises(ValueError):  # an empty export must fail, not write a blank file
+        snapshot.export_chains(conn, "2026-11-05", "close", str(tmp_path / "e.csv.gz"))
+    assert not (tmp_path / "e.csv.gz").exists()
+
+
+def test_market_date_is_new_york_not_utc():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    assert snapshot.market_today() == datetime.now(ZoneInfo("America/New_York")).date()
+
+
+def test_cli_export_empty_returns_error(tmp_path, capsys):
+    db = str(tmp_path / "e.db")
+    assert main(["--db", db, "export-chains", "--date", "2026-01-01", "--out", str(tmp_path / "x.gz")]) == 1
+    assert "no snapshot rows" in capsys.readouterr().err
+    assert not (tmp_path / "x.gz").exists()
 
 
 def test_tradier_parser_handles_single_and_missing_greeks():

@@ -17,6 +17,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import Optional, Protocol
 
 
@@ -40,6 +41,11 @@ class Provider(Protocol):
     def vix(self) -> Optional[float]: ...
     def expirations(self, symbol: str) -> list[str]: ...
     def chain(self, symbol: str, expiry: str) -> list[Quote]: ...
+
+
+def market_today() -> date:
+    """The New York calendar date. Never the server's local or UTC date: a late run would stamp tomorrow."""
+    return datetime.now(ZoneInfo("America/New_York")).date()
 
 
 def _norm_cdf(x: float) -> float:
@@ -159,7 +165,7 @@ def snapshot(conn: sqlite3.Connection, provider: Provider, symbols: list[str], s
              max_dte: int = 45, band: float = 0.08, today: Optional[date] = None,
              now: Optional[datetime] = None) -> int:
     """Store puts and calls within +/-band of spot for expiries up to max_dte. Re-running a slot replaces it."""
-    today = today or date.today()
+    today = today or market_today()
     ts = (now or datetime.now(timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
     vix = provider.vix()
     stored = 0
@@ -197,6 +203,9 @@ def export_chains(conn: sqlite3.Connection, snap_date: str, slot: str, out_path:
 
     rows = conn.execute(f"SELECT {', '.join(EXPORT_COLUMNS)} FROM chain_snapshots WHERE snap_date=? AND slot=? "
                         "ORDER BY underlying, expiry, right, strike", (snap_date, slot)).fetchall()
+    if not rows:
+        raise ValueError(f"no snapshot rows for {snap_date} slot={slot}; nothing exported "
+                         "(check the date: snapshots are stamped with the New York market date)")
     with gzip.open(out_path, "wt", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(EXPORT_COLUMNS)
