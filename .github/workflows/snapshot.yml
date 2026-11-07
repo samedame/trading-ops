@@ -47,13 +47,23 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: pip install -r requirements.txt
 
+      # A missing TRADIER_TOKEN used to fall back to yfinance SILENTLY. Now it fails loudly (Discord notice + red run)
+      # unless the repo Variable PROVIDER_ALLOW_FALLBACK is exactly 1.
+      - name: Resolve quote provider
+        id: provider
+        if: steps.guard.outputs.run == 'true'
+        env:
+          TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
+          PROVIDER_ALLOW_FALLBACK: ${{ vars.PROVIDER_ALLOW_FALLBACK }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python scripts/resolve_provider.py
+
       - name: Snapshot and export
         if: steps.guard.outputs.run == 'true'
         env:
           TRADING_OPS_DB: ${{ runner.temp }}/snap.db
           TRADIER_TOKEN: ${{ secrets.TRADIER_TOKEN }}
-          # Uses Tradier when the TRADIER_TOKEN secret exists, otherwise falls back to yfinance.
-          PROVIDER: ${{ secrets.TRADIER_TOKEN && 'tradier' || 'yfinance' }}
+          PROVIDER: ${{ steps.provider.outputs.provider }}
         run: |
           set -euo pipefail
           day=$(TZ=America/New_York date +%F)
@@ -70,3 +80,10 @@ jobs:
           git config user.email "trading-ops-bot@users.noreply.github.com"
           git add data
           if git diff --cached --quiet; then echo "nothing new"; else git commit -m "chain snapshot $(TZ=America/New_York date +%F)" && git push; fi
+
+      - name: Tell Discord if this run failed
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python notify_failure.py "trading-ops chain snapshot"
