@@ -1,0 +1,28 @@
+{
+  "_comment": "One place that says how much capital each bot is sized against. NULL means 'not decided': scripts/set_fleet_capital.py refuses to run while any value is null, and never invents one. 'variables' are the GitHub repo Variable names the workflows read (the same number lives under five different names today); 'workflows' are the files that read them. Edit the numbers, then: python scripts/set_fleet_capital.py (dry run) and --apply.",
+  "total_account_usd": null,
+  "bots": [
+    {"bot": "apex_chronos", "repo": "samedame/Apex_Chronos", "variables": ["ACCOUNT_CAPITAL"],
+     "workflows": ["chronos-session.yml", "chronos-eod.yml"], "usd": null},
+    {"bot": "apex_sniper", "repo": "samedame/Apex-Sniper", "variables": ["ACCOUNT_CAPITAL"],
+     "workflows": ["sniper-session.yml", "sniper-eod.yml"], "usd": null},
+    {"bot": "apex_omega", "repo": "samedame/Apex_Omega", "variables": ["ACCOUNT_EQUITY"],
+     "workflows": ["omega-session.yml"], "usd": null},
+    {"bot": "apex_master", "repo": "samedame/Apex-Master", "variables": ["ACCOUNT_SIZE"],
+     "workflows": ["master-session.yml"], "usd": null},
+    {"bot": "spy_bps", "repo": "samedame/spy-bps-bot", "variables": ["ACCOUNT_EQUITY"],
+     "workflows": ["alert.yml", "reconcile.yml"], "usd": null},
+    {"bot": "ibs_dip_calls", "repo": "samedame/robinhood-1500-options-strategy", "variables": ["ACCOUNT_EQUITY"],
+     "workflows": ["daily-signal.yml"], "usd": null},
+    {"bot": "options_scanner", "repo": "samedame/Daily-Stock-Options-Alert", "variables": ["ACCOUNT_CAPITAL_FOR_SIZING"],
+     "workflows": ["daily_scan.yml"], "usd": null,
+     "note": "daily_scan.yml reads secrets.ACCOUNT_CAPITAL_FOR_SIZING FIRST, then the Variable, then the '1500' default. A secret with that name would silently win over this script's Variable."},
+    {"bot": "premium_sleeve", "repo": "samedame/Premium-Sleeve", "variables": ["ACCOUNT_CAPITAL_FOR_SIZING"],
+     "workflows": ["entry.yml", "monitor.yml"], "usd": null},
+    {"bot": "tier1_bot", "repo": "samedame/Tier1-Bot", "variables": ["ACCOUNT_CAPITAL_USD"],
+     "workflows": ["tier1.yml"], "usd": null},
+    {"bot": "condor", "repo": "samedame/daytrading_bot", "variables": ["CONDOR_BUYING_POWER"],
+     "workflows": ["stage.yml", "gonogo.yml"], "usd": null,
+     "note": "Buying power set aside for the condor, not account equity."}
+  ]
+}
