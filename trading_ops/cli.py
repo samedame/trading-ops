@@ -42,6 +42,8 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--price", type=float, required=True, help="the price you actually got")
     f.add_argument("--mult", type=float, default=100); f.add_argument("--fees", type=float, default=0.0)
     f.add_argument("--leg")
+    f.add_argument("--expected-cost-per-lot", type=float,
+                   help="prior bid/ask crossing cost per one-lot for this action; default: looked up from config/cost_priors.json by the trade's structure")
 
     c = sub.add_parser("close")
     c.add_argument("--trade-id", type=int, required=True)
@@ -99,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
                                 args.signal_id, args.entry_ref))
     elif args.cmd == "fill":
         ledger.add_fill(conn, args.trade_id, args.action, args.side, args.qty, args.ref, args.price,
-                        args.mult, args.fees, args.leg)
+                        args.mult, args.fees, args.leg, expected_cost_per_lot=args.expected_cost_per_lot)
         print("fill logged")
     elif args.cmd == "close":
         print(f"closed with pnl {ledger.close_trade(conn, args.trade_id, args.pnl, args.unit):.4f} {args.unit}")
