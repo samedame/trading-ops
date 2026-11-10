@@ -1,7 +1,6 @@
 name: Daily chain snapshot
 
-# GitHub cron can drift by many minutes (you have seen this with the IBS bot). The guard below only
-# accepts a run that lands between 15:40 and 16:10 New York time, so a drifted run is skipped, not wrong.
+# GitHub cron can drift by hours. The guard below accepts a New York weekday run from 15:40 to 23:30 ET, once per day.
 on:
   schedule:
     - cron: "50 19 * * 1-5"   # 15:50 ET during daylight time
@@ -9,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: "Run even outside the 15:40-16:10 ET window"
+        description: "Run even outside the 15:40-23:30 ET window or if today already has a file"
         type: boolean
         default: false
 
@@ -26,16 +25,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # GitHub cron routinely fires hours late (observed 3-5 h in Nov 2026), so a +/-15 min window skipped every
+      # scheduled run. Now: run on any New York weekday from 15:40 to 23:30 (before midnight, because the data is
+      # stamped with the New York date), and skip if today's file already exists so the earliest run wins.
       - name: Check New York time window
         id: guard
         run: |
           now=$(TZ=America/New_York date +%H%M)
-          echo "New York time is $now"
-          if [ "${{ github.event.inputs.force }}" = "true" ] || { [ "$now" -ge 1540 ] && [ "$now" -le 1610 ]; }; then
+          dow=$(TZ=America/New_York date +%u)
+          day=$(TZ=America/New_York date +%F)
+          echo "New York time is $now (weekday $dow, $day)"
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$dow" -ge 6 ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "Weekend in New York; skipping."
+          elif [ -f "data/chains/${day}_close.csv.gz" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "Today's snapshot already exists; skipping."
+          elif [ "$now" -ge 1540 ] && [ "$now" -le 2330 ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Outside the window; skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "Outside 15:40-23:30 ET; skipping."
           fi
 
       - uses: actions/setup-python@v5
