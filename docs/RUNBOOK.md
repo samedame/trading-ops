@@ -28,11 +28,12 @@ The script sets the secret under whatever name each repo's workflows use (for ex
 
 - Each alert you see: `signal --bot <name> --symbol SPY --grade <n>`.
 - If you take it (or paper it): `open --bot <name> --mode paper|shadow|live ...`, then `fill ... --ref <alert price> --price <what you got>` for each leg, then `close --trade-id <n>`. For a short that expires worthless, log a closing buy at price 0.
-- Snapshot after the close: `python -m trading_ops snapshot --symbols SPY,QQQ,IWM --slot close`. Schedule it (GitHub Actions or your Cloudflare scheduler) so it never depends on you remembering.
+- Chain snapshots come from options-data-journal (the fleet's one snapshotter since 2026-11-13). `python -m trading_ops snapshot --symbols SPY,QQQ,IWM --slot close` still works by hand when you want the H8 ladder.
 - Each snapshot run also lets you read the H8 ladder: `ladder --date YYYY-MM-DD`.
 
 ## Every Sunday (10 minutes)
 
+- `python -m trading_ops import-ibs` first: it loads the IBS bot's closed trades (valued at the next open, in bp) so the scorecard has something to judge. Safe to re-run.
 - `python -m trading_ops scorecard`. Read the status column, not the means.
 - `python -m trading_ops slippage`. If average slippage per fill is more than a third of the edge you are claiming, the edge is gone.
 - Write one line per bot in your notes: status, n, anything flagged.

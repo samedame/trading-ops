@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import freeze, ledger, scorecard, sizing, snapshot
+from . import freeze, ibs_import, ledger, scorecard, sizing, snapshot
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -78,6 +78,11 @@ def build_parser() -> argparse.ArgumentParser:
     sc = sub.add_parser("scorecard")
     sc.add_argument("--config"); sc.add_argument("--json", action="store_true")
 
+    ib = sub.add_parser("import-ibs", help="load the IBS callout bot's closed trades (valued at the next open, in bp)")
+    ib.add_argument("--state", help="path or URL of the bot's state.json (default: the public repo's main branch)")
+    ib.add_argument("--cost-bp-per-side", type=float, default=ibs_import.COST_BP_PER_SIDE)
+    ib.add_argument("--dry-run", action="store_true", help="value the trades and print them; write nothing")
+
     fr = sub.add_parser("freeze")
     fs = fr.add_subparsers(dest="kind", required=True)
     fs.add_parser("status")
@@ -136,6 +141,12 @@ def main(argv: list[str] | None = None) -> int:
     elif args.cmd == "scorecard":
         report = scorecard.run(conn, _load(args.config, "bots.json"))
         print(json.dumps(report, indent=2, default=str) if args.json else scorecard.render_markdown(report))
+    elif args.cmd == "import-ibs":
+        res = ibs_import.run(conn, args.state, cost_bp_per_side=args.cost_bp_per_side, dry_run=args.dry_run)
+        out(res)
+        if res["price_errors"] and not res["valued"]:
+            print("error: no opening prices could be fetched, so nothing was valued", file=sys.stderr)
+            return 1
     elif args.cmd == "freeze":
         cfg = _load(None, "freeze.json")
         if args.kind == "status":

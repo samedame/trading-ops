@@ -13,8 +13,27 @@ SPEC.loader.exec_module(mod)
 REAL = json.loads((ROOT / "config" / "capital.json").read_text())
 
 
+# A fixed ten-bot table for the script's own behaviour, so these tests do not move when the shipped table changes.
+TABLE = {"total_account_usd": None, "bots": [
+    {"bot": "apex_chronos", "repo": "samedame/Apex_Chronos", "variables": ["ACCOUNT_CAPITAL"], "usd": None},
+    {"bot": "apex_sniper", "repo": "samedame/Apex-Sniper", "variables": ["ACCOUNT_CAPITAL"], "usd": None},
+    {"bot": "apex_omega", "repo": "samedame/Apex_Omega", "variables": ["ACCOUNT_EQUITY"], "usd": None},
+    {"bot": "apex_master", "repo": "samedame/Apex-Master", "variables": ["ACCOUNT_SIZE"], "usd": None},
+    {"bot": "spy_bps", "repo": "samedame/spy-bps-bot", "variables": ["ACCOUNT_EQUITY"], "usd": None},
+    {"bot": "ibs_dip_calls", "repo": "samedame/robinhood-1500-options-strategy", "variables": ["ACCOUNT_EQUITY"], "usd": None},
+    {"bot": "options_scanner", "repo": "samedame/Daily-Stock-Options-Alert", "variables": ["ACCOUNT_CAPITAL_FOR_SIZING"], "usd": None},
+    {"bot": "premium_sleeve", "repo": "samedame/Premium-Sleeve", "variables": ["ACCOUNT_CAPITAL_FOR_SIZING"], "usd": None},
+    {"bot": "tier1_bot", "repo": "samedame/Tier1-Bot", "variables": ["ACCOUNT_CAPITAL_USD"], "usd": None},
+    {"bot": "condor", "repo": "samedame/daytrading_bot", "variables": ["CONDOR_BUYING_POWER"], "usd": None},
+]}
+
+
+def nulled():
+    return copy.deepcopy(TABLE)
+
+
 def filled(total=10000, each=1500):
-    cfg = copy.deepcopy(REAL)
+    cfg = copy.deepcopy(TABLE)
     cfg["total_account_usd"] = total
     for b in cfg["bots"]:
         b["usd"] = each
@@ -38,17 +57,28 @@ def write(tmp_path, cfg):
     return str(p)
 
 
-def test_shipped_table_is_all_null_and_lists_every_known_variable():
-    assert REAL["total_account_usd"] is None
-    assert all(b["usd"] is None for b in REAL["bots"])
+def test_shipped_table_is_filled_and_lists_only_running_bots():
+    # Set on 2026-11-13: $1,500, every running bot sized against the whole account.
+    assert REAL["total_account_usd"] == 1500
+    assert all(b["usd"] == 1500 for b in REAL["bots"])
+    assert mod.validate(REAL) == []
     names = {v for b in REAL["bots"] for v in b["variables"]}
-    assert names == {"ACCOUNT_CAPITAL", "ACCOUNT_EQUITY", "ACCOUNT_SIZE", "ACCOUNT_CAPITAL_FOR_SIZING",
-                     "ACCOUNT_CAPITAL_USD", "CONDOR_BUYING_POWER"}
+    assert names == {"ACCOUNT_CAPITAL", "ACCOUNT_EQUITY", "ACCOUNT_SIZE", "ACCOUNT_CAPITAL_FOR_SIZING"}
+    repos = {b["repo"].split("/")[1] for b in REAL["bots"]}
+    assert not repos & {"Apex-Sniper", "Apex_Omega", "spy-bps-bot", "Daily-Stock-Options-Alert", "Tier1-Bot", "daytrading_bot"}
 
 
-def test_refuses_on_shipped_nulls_and_calls_nothing(capsys):
+def test_shipped_table_dry_run_plans_one_variable_per_entry(capsys):
     gh = FakeGh()
-    assert mod.main(["--apply"], run=gh) == 2
+    assert mod.main([], run=gh) == 0
+    assert gh.calls == []
+    out = capsys.readouterr().out
+    assert "overcommit ratio: 5.00" in out and "5 Variable(s) would be written" in out
+
+
+def test_refuses_on_nulls_and_calls_nothing(tmp_path, capsys):
+    gh = FakeGh()
+    assert mod.main(["--config", write(tmp_path, nulled()), "--apply"], run=gh) == 2
     assert gh.calls == []
     assert "not filled in" in capsys.readouterr().err
 

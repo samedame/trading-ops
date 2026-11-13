@@ -35,4 +35,11 @@ The goal is fewer things to monitor, not more. Every row names what to keep, wha
 | Regime engine (daily 1-100 score) | **Keep as a morning read, not a trade trigger** | Judge it by the same scorecard once its scores are logged as signals. |
 | BotDeck dashboard | **Keep; add the scorecard JSON** | `python -m trading_ops scorecard --json` is built to be read by it. |
 
-Outcome: from every bot above to **4 active measurements** (IBS, Master v2, premium sleeve in paper, momentum in shadow) plus the data snapshotter.
+## Data tooling
+
+| Tool | Decision | Reason |
+|---|---|---|
+| options-data-journal snapshots | **Keep as the only daily chain snapshotter** | Two slots a day, idempotent per ticker/date/slot, schema-checked, and it carries the fill journal. |
+| trading-ops `snapshot.yml` | **Manual only since 2026-11-13** | It stored the same SPY/QQQ/IWM chains a second time. Kept as a manual run for the H8 put ladder. |
+
+Outcome: from every bot above to **4 active measurements** (IBS, Master v2, premium sleeve in paper, momentum in shadow) plus one data snapshotter (options-data-journal).

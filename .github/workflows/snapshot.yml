@@ -1,11 +1,12 @@
-name: Daily chain snapshot
+name: Chain snapshot (manual)
 
-# GitHub cron can drift by many minutes (you have seen this with the IBS bot). The guard below only
-# accepts a run that lands between 15:40 and 16:10 New York time, so a drifted run is skipped, not wrong.
+# Retired as a DAILY job on 2026-11-13. options-data-journal is the fleet's one chain snapshotter (two slots a day,
+# idempotent per ticker/date/slot, schema-checked); this workflow stored the same SPY/QQQ/IWM chains a second time.
+# It stays as a manual run for the one thing ODJ does not produce: the H8 put ladder JSON.
+# To bring the daily run back, restore:
+#   schedule:
+#     - cron: "50 20 * * 1-5"   # 15:50 ET during standard time
 on:
-  schedule:
-    - cron: "50 19 * * 1-5"   # 15:50 ET during daylight time
-    - cron: "50 20 * * 1-5"   # 15:50 ET during standard time
   workflow_dispatch:
     inputs:
       force:

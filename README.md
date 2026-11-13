@@ -6,7 +6,8 @@ Measurement, sizing and journaling for your bot fleet. It records and checks; it
 |---|---|---|
 | Ledger | `trading_ops/ledger.py` | One SQLite file for signals, trades, fills (with slippage), chain snapshots and events. |
 | Sizing | `trading_ops/sizing.py` | Fixed-fractional contract counts, cash-secured collateral, whole-share rounding. Refuses to run if `ACCOUNT_CAPITAL_USD` is unset. |
-| Snapshotter | `trading_ops/snapshot.py` | Stores SPY/QQQ/IWM option chains daily (yfinance or Tradier) and reads the H8 put ladder in bp of notional. |
+| Snapshotter | `trading_ops/snapshot.py` | Stores SPY/QQQ/IWM option chains (yfinance or Tradier) and reads the H8 put ladder in bp of notional. Manual only: options-data-journal is the daily snapshotter. |
+| IBS import | `trading_ops/ibs_import.py` | Loads the IBS callout bot's closed trades into the ledger in bp, valued at the next open as the bot's own rule fills them. |
 | Scorecard | `trading_ops/scorecard.py` | Per-bot live-vs-backtest verdict using the thresholds your own verdicts set. |
 | Cost priors | `config/cost_priors.json` | Expected bid/ask crossing cost per one-lot by structure (from real SPY chains, 2010-2023). Fills carry `expected_cost_per_lot`; the scorecard compares actual vs prior and shows break-even win rate and expectancy in R. |
 | Freeze | `trading_ops/freeze.py` | 90-day build-freeze tracker with an auditable exception log. |

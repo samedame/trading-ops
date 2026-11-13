@@ -27,7 +27,8 @@
       "min_n": 30,
       "max_dd_floor": -8,
       "source": "claude/apex-master-backtest-verdict-2026-11-04.md",
-      "notes": "Benchmark is the live-executable first_fire rule (reliability -0.020R), NOT the published +0.306R, which needs whole-day hindsight. The Section 9 drawdown bar is -8R; the backtest already breached it (-12.8R). Decide the profile (reliability vs runner) before the first trade; changing later restarts the count."
+      "notes": "Benchmark is the live-executable first_fire rule (reliability -0.020R), NOT the published +0.306R, which needs whole-day hindsight. The Section 9 drawdown bar is -8R; the backtest already breached it (-12.8R). Decide the profile (reliability vs runner) before the first trade; changing later restarts the count.",
+      "blocked": "v1 session off by default since 2026-11-13 (Apex-Master PR #3): live rule flat (-0.020R) with drawdown past its own -8R bar."
     },
     "tier1_bot_h8": {
       "unit": "usd",
@@ -40,22 +41,27 @@
       "backtest_mean": null,
       "min_n": 20,
       "source": "claude/condor-integrity-audit-2026-10-28.md",
-      "notes": "0 of 7 real credit checks reached OK ($0.03-$0.27 vs the $0.44 bar); 0 logged fills. Patches in draft PR #3 (silent-failure alerts, kill-switch scaling) are NOT merged: merge them before relying on this bot."
+      "notes": "0 of 7 real credit checks reached OK ($0.03-$0.27 vs the $0.44 bar); 0 logged fills. Patches in draft PR #3 (silent-failure alerts, kill-switch scaling) are NOT merged: merge them before relying on this bot.",
+      "blocked": "Retired 2026-11-13 (fleet scan): superseded by Premium-Sleeve; 0 of 7 real-credit checks reached the bar."
     },
     "premium_sleeve": {
       "unit": "usd",
       "backtest_mean": null,
       "min_n": 30,
       "source": "claude/vol-regime-gate-edge-audit-verdict-2026-11-01.md",
-      "notes": "Its only evidence is the index-level PUT result (holdout Sharpe 0.56, CAGR 6.9%, max DD -29%), not this spread structure with PT/SL. The gate in front of it was audited Tier D/E: gate (a) KILL, gate (b1) shelve as a return claim. Treat the gate as a risk preference, not an edge."
+      "notes": "Its only evidence is the index-level PUT result (holdout Sharpe 0.56, CAGR 6.9%, max DD -29%), not this spread structure with PT/SL. The gate in front of it was audited Tier D/E: gate (a) KILL, gate (b1) shelve as a return claim. Treat the gate as a risk preference, not an edge. Stop rule already in the bot's config (written before any trade): entries halt at a 15% drawdown from the sleeve's peak, restart only after 20 sessions with VIX/VIX3M below 1.00; per position 50% of credit, 2x credit stop, 21 DTE time exit.",
+      "blocked": "At the $1,500 account setting the sleeve's 5% per-position risk cap sizes every 10-wide SPY put spread to 0 contracts (its README puts the floor near $20,000), so it cannot open a position or build a record. Kept at $1,500 by choice on 2026-11-13."
     },
     "ibs": {
-      "unit": "unset",
-      "backtest_mean": null,
+      "unit": "bp",
+      "backtest_mean": 68.0,
+      "haircut": 0.0,
       "min_n": 30,
+      "retire_at_n": 100,
+      "retire_if_mean_le": 20.0,
       "stale_days": null,
-      "source": "claude/callout-bot-preregistration (callout-bot-sweep)",
-      "notes": "Only strategy that passed every pre-registered gate. Fill backtest_mean and the unit from your IBS pre-registration so this scorecard can judge it."
+      "source": "claude/callout-bot-verdict.md (pre-registration: claude/callout-bot-preregistration.md)",
+      "notes": "Unit: bp of the entry price per closed trade, next-open to next-open, net of 1.5 bp a side (the bot's own execution rule and the verdict's cost). Benchmark +68 bp is the out-of-sample average trade at the next open, 2019-01 to 2026-09 (verdict range +0.6% to +0.8%; the full 1998-2026 history in the ADX verdict averages about +49 bp). No haircut: the rule was pre-registered and judged on untouched data. Retire rule is the verdict's kill switch (average trade below +0.2% over 100 alerts), applied here to the first 100 logged trades; the bot's own kill_switch_monitor.py applies it on a rolling 100 and also watches drawdown (25%) and win rate (60%). Load the bot's closed trades with: python -m trading_ops import-ibs. Watch item from the verdict: 2026 year-to-date was +8 bp a trade over 37 alerts."
     },
     "momentum_sleeve": {
       "unit": "unset",
@@ -67,11 +73,12 @@
       "notes": "Shadow/paper only."
     },
     "apex_chronos": {
-      "unit": "unset",
+      "unit": "pct",
       "backtest_mean": null,
       "min_n": 30,
-      "source": "claude/apex-chronos-improvement-verdict-2026-10-21.md",
-      "notes": "Intraday modules: the audit found no edge on hourly data (108-rule scan, 0 Holm survivors). Add a benchmark from your Chronos verdict before trusting any status here."
+      "blocked": "P1 and P3 alerts muted 2026-11-13: forward model record 15 Oct to 12 Nov is P1 74 trades at -3.4% each, P3 6 trades at -10.3% each (model prices, not fills), and the audit found 0 Holm survivors. Logged only. P2 is judged separately as apex_chronos_p2.",
+      "source": "claude/apex-chronos-improvement-verdict-2026-10-21.md; Apex_Chronos ledger/trades.csv",
+      "notes": "Intraday modules. Nothing to fund."
     },
     "pre_earnings_straddle": {
       "unit": "usd",
@@ -84,7 +91,19 @@
       "backtest_mean": null,
       "min_n": 30,
       "source": "claude/bot-selector-build-2026-10-27.md",
-      "notes": "Replay showed no demonstrated value (n=5, CI includes 0). Log only its decisions and judge them against same-board alternatives; do not trade from it."
+      "notes": "Replay showed no demonstrated value (n=5, CI includes 0). Log only its decisions and judge them against same-board alternatives; do not trade from it.",
+      "blocked": "Session retired 2026-11-13 (fleet scan): no demonstrated value (n=5, CI includes 0) and a ranking layer is on the freeze's forbidden list."
+    },
+    "apex_chronos_p2": {
+      "unit": "pct",
+      "backtest_mean": 1.5,
+      "haircut": 0.0,
+      "min_n": 100,
+      "retire_at_n": 100,
+      "retire_if_mean_le": 0.0,
+      "pause_cum_floor": -100.0,
+      "source": "Apex_Chronos docs/P2_DECISION.md (frozen 2026-11-13); backtest figure from docs/LIVE_VS_BACKTEST.md",
+      "notes": "Unit: model ROI in percent of collateral per trade (Black-Scholes prices, not fills). Counts only P2 trades dated 2026-11-16 or later: the first 40 forward trades (+3.3% each, 72% winners) are what singled P2 out, so they cannot also confirm it. Decision at exactly 100 new trades, written down before any of them existed: KEEP if the mean is above zero and the day-clustered one-sided 95% lower bound is above zero; otherwise RETIRE. Stop early if the new trades sum to -100% of collateral. Keep means P2 stays a paper alert and may go to the real-quote gate; it does not mean fund it. The repo's EOD post prints the count and the verdict."
     }
   }
 }

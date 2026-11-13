@@ -203,7 +203,10 @@ def test_on_track_and_underperforming(conn):
     _add(conn, "apex_master_v2", [rng.gauss(30, 40) for _ in range(45)])
     assert _status(conn, "apex_master_v2")["status"] == "ON TRACK"
     _add(conn, "apex_master_v1", [rng.gauss(-0.3, 0.2) for _ in range(35)], unit="R")
-    assert _status(conn, "apex_master_v1")["status"] in ("UNDERPERFORMING", "PAUSE")
+    assert _status(conn, "apex_master_v1")["status"] == "BLOCKED"          # v1 session is off (2026-11-13)
+    cfg = {k: v for k, v in CONFIG["bots"]["apex_master_v1"].items() if k != "blocked"}
+    trades = ledger.closed_trades(conn, "apex_master_v1")
+    assert scorecard.evaluate("apex_master_v1", cfg, trades, CONFIG["global"])["status"] in ("UNDERPERFORMING", "PAUSE")
 
 
 def test_blocked_beats_everything_and_review_flag(conn):
