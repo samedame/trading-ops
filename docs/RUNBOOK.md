@@ -6,7 +6,7 @@ Window: 2026-11-05 to 2027-02-03 (`python -m trading_ops freeze status`).
 
 1. `pip install -r requirements.txt` (only needed for the snapshotter; the rest is standard library).
 2. `export TRADING_OPS_DB=~/trading-ops/ledger.db` and `python -m trading_ops init`.
-3. **Set `ACCOUNT_CAPITAL_USD`** to the capital you are allocating. This is yours to choose; nothing here guesses it. Also set the `ACCOUNT_CAPITAL_FOR_SIZING` constant in the options scanner's `daily_alert.py` and `ACCOUNT_CAPITAL_USD` in tier1-bot to the same number so their alerts stop sizing to zero.
+3. **Account capital is set: $1,500** in `config/capital.json` (2026-11-13). Sizing reads it from there; `ACCOUNT_CAPITAL_USD` in your shell overrides it. Push it to the bot repos once, from your own machine with `gh` logged in: `python scripts/set_fleet_capital.py` (dry run), then `--apply`. The bots already default to 1500 when their Variable is unset, so this makes the number explicit rather than changing it.
 4. Check feasibility before you trust any alert:
    - `python -m trading_ops size spread --width 5 --credit 1.00 --risk-pct 0.02`
    - `python -m trading_ops size csp --strike 725 --credit 0.15`

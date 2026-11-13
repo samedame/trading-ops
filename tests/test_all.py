@@ -261,8 +261,11 @@ def test_cli_flow(tmp_path, monkeypatch, capsys):
     capsys.readouterr()
     main(["--db", db, "close", "--trade-id", "1"])
     assert "40.0000" in capsys.readouterr().out  # sold at 0.40, expired worthless: $40
-    with pytest.raises(sizing.CapitalNotSet):
-        main(["--db", db, "size", "spread", "--width", "5", "--credit", "1"])
+    # No env var: sizing reads the account total from config/capital.json ($1,500), where a 5-wide spread fits 0 contracts.
+    capsys.readouterr()
+    main(["--db", db, "size", "spread", "--width", "5", "--credit", "1"])
+    out = capsys.readouterr().out
+    assert "capital $1,500 from config/capital.json" in out and '"contracts": 0' in out and '"tradable": false' in out
     monkeypatch.setenv("ACCOUNT_CAPITAL_USD", "25000")
     capsys.readouterr()
     main(["--db", db, "size", "spread", "--width", "5", "--credit", "1"])
@@ -271,3 +274,18 @@ def test_cli_flow(tmp_path, monkeypatch, capsys):
     assert "# Bot scorecard" in capsys.readouterr().out
     main(["--db", db, "freeze", "status"])
     assert "days_left" in capsys.readouterr().out
+
+
+def test_capital_prefers_env_then_config_and_never_guesses(tmp_path):
+    cfg = tmp_path / "capital.json"
+    cfg.write_text(json.dumps({"total_account_usd": 1500}))
+    assert sizing.capital({}, str(cfg)) == (1500.0, "config/capital.json")
+    assert sizing.capital({"ACCOUNT_CAPITAL_USD": "4000"}, str(cfg)) == (4000.0, "ACCOUNT_CAPITAL_USD")
+    with pytest.raises(sizing.CapitalNotSet):                       # a bad env value is an error, not a fall-through
+        sizing.capital({"ACCOUNT_CAPITAL_USD": "abc"}, str(cfg))
+    for bad in ({"total_account_usd": None}, {"total_account_usd": True}, {"total_account_usd": -1}, {}):
+        cfg.write_text(json.dumps(bad))
+        with pytest.raises(sizing.CapitalNotSet):
+            sizing.capital({}, str(cfg))
+    with pytest.raises(sizing.CapitalNotSet):
+        sizing.capital({}, str(tmp_path / "missing.json"))

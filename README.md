@@ -5,7 +5,7 @@ Measurement, sizing and journaling for your bot fleet. It records and checks; it
 | Piece | File | What it does |
 |---|---|---|
 | Ledger | `trading_ops/ledger.py` | One SQLite file for signals, trades, fills (with slippage), chain snapshots and events. |
-| Sizing | `trading_ops/sizing.py` | Fixed-fractional contract counts, cash-secured collateral, whole-share rounding. Refuses to run if `ACCOUNT_CAPITAL_USD` is unset. |
+| Sizing | `trading_ops/sizing.py` | Fixed-fractional contract counts, cash-secured collateral, whole-share rounding. Reads `ACCOUNT_CAPITAL_USD`, else the account total in `config/capital.json`; refuses to run if neither is set. |
 | Snapshotter | `trading_ops/snapshot.py` | Stores SPY/QQQ/IWM option chains (yfinance or Tradier) and reads the H8 put ladder in bp of notional. Manual only: options-data-journal is the daily snapshotter. |
 | IBS import | `trading_ops/ibs_import.py` | Loads the IBS callout bot's closed trades into the ledger in bp, valued at the next open as the bot's own rule fills them. |
 | Scorecard | `trading_ops/scorecard.py` | Per-bot live-vs-backtest verdict using the thresholds your own verdicts set. |

@@ -113,11 +113,11 @@ def main(argv: list[str] | None = None) -> int:
     elif args.cmd == "slippage":
         out(ledger.slippage_summary(conn, args.bot))
     elif args.cmd == "size":
+        cap, cap_source = sizing.capital()
+        print(f"(capital ${cap:,.0f} from {cap_source})")
         if args.kind == "shares":
-            cap = sizing.capital_from_env()
             out(sizing.share_plan(cap, args.weight, args.price, args.fractional))
         else:
-            cap = sizing.capital_from_env()
             if args.kind == "spread":
                 loss = sizing.spread_max_loss(args.width, args.credit, args.mult)
                 print(f"(risk per trade = {args.risk_pct:.1%} of capital; this default is illustrative, set your own)")
