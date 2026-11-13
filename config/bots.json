@@ -103,7 +103,7 @@
       "retire_if_mean_le": 0.0,
       "pause_cum_floor": -100.0,
       "source": "Apex_Chronos docs/P2_DECISION.md (frozen 2026-11-13); backtest figure from docs/LIVE_VS_BACKTEST.md",
-      "notes": "Unit: model ROI in percent of collateral per trade (Black-Scholes prices, not fills). Counts only P2 trades dated 2026-11-16 or later: the first 40 forward trades (+3.3% each, 72% winners) are what singled P2 out, so they cannot also confirm it. Decision at exactly 100 new trades, written down before any of them existed: KEEP if the mean is above zero and the day-clustered one-sided 95% lower bound is above zero; otherwise RETIRE. Stop early if the new trades sum to -100% of collateral. Keep means P2 stays a paper alert and may go to the real-quote gate; it does not mean fund it. The repo's EOD post prints the count and the verdict."
+      "notes": "Unit: model ROI in percent of collateral per trade (Black-Scholes prices, not fills). Counts only P2 trades dated 2026-11-16 or later: the first 40 forward trades (+3.3% each, 72% winners) are what singled P2 out, so they cannot also confirm it. Decision at exactly 100 new trades, written down before any of them existed: KEEP if the mean is at least +1.0% of collateral and the day-clustered one-sided 95% lower bound is above zero; otherwise RETIRE. Stop early if the new trades sum to -100% of collateral. Keep means P2 stays a paper alert and may go to the real-quote gate; it does not mean fund it. The repo's EOD post prints the count and the verdict."
     }
   }
 }
