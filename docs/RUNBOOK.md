@@ -6,7 +6,7 @@ Window: 2026-11-05 to 2027-02-03 (`python -m trading_ops freeze status`).
 
 1. `pip install -r requirements.txt` (only needed for the snapshotter; the rest is standard library).
 2. `export TRADING_OPS_DB=~/trading-ops/ledger.db` and `python -m trading_ops init`.
-3. **Set `ACCOUNT_CAPITAL_USD`** to the capital you are allocating. This is yours to choose; nothing here guesses it. Also set the `ACCOUNT_CAPITAL_FOR_SIZING` constant in the options scanner's `daily_alert.py` and `ACCOUNT_CAPITAL_USD` in tier1-bot to the same number so their alerts stop sizing to zero.
+3. **Account capital is set: $1,500** in `config/capital.json` (2026-11-13). Sizing reads it from there; `ACCOUNT_CAPITAL_USD` in your shell overrides it. Push it to the bot repos once, from your own machine with `gh` logged in: `python scripts/set_fleet_capital.py` (dry run), then `--apply`. The bots already default to 1500 when their Variable is unset, so this makes the number explicit rather than changing it.
 4. Check feasibility before you trust any alert:
    - `python -m trading_ops size spread --width 5 --credit 1.00 --risk-pct 0.02`
    - `python -m trading_ops size csp --strike 725 --credit 0.15`
@@ -28,11 +28,12 @@ The script sets the secret under whatever name each repo's workflows use (for ex
 
 - Each alert you see: `signal --bot <name> --symbol SPY --grade <n>`.
 - If you take it (or paper it): `open --bot <name> --mode paper|shadow|live ...`, then `fill ... --ref <alert price> --price <what you got>` for each leg, then `close --trade-id <n>`. For a short that expires worthless, log a closing buy at price 0.
-- Snapshot after the close: `python -m trading_ops snapshot --symbols SPY,QQQ,IWM --slot close`. Schedule it (GitHub Actions or your Cloudflare scheduler) so it never depends on you remembering.
+- Chain snapshots come from options-data-journal (the fleet's one snapshotter since 2026-11-13). `python -m trading_ops snapshot --symbols SPY,QQQ,IWM --slot close` still works by hand when you want the H8 ladder.
 - Each snapshot run also lets you read the H8 ladder: `ladder --date YYYY-MM-DD`.
 
 ## Every Sunday (10 minutes)
 
+- `python -m trading_ops import-ibs` first: it loads the IBS bot's closed trades (valued at the next open, in bp) so the scorecard has something to judge. Safe to re-run.
 - `python -m trading_ops scorecard`. Read the status column, not the means.
 - `python -m trading_ops slippage`. If average slippage per fill is more than a third of the edge you are claiming, the edge is gone.
 - Write one line per bot in your notes: status, n, anything flagged.

@@ -1,10 +1,12 @@
 """Position-sizing and account-feasibility math.
 
-Never guesses your account size: ACCOUNT_CAPITAL_USD must be set by you. Every function is pure so it can be
-imported by any bot. Sizing is fixed-fractional on worst-case loss, and it rounds DOWN (zero is a valid answer).
+Never guesses your account size: it comes from ACCOUNT_CAPITAL_USD or, when that is unset, from the account total
+you wrote in config/capital.json. Every function is pure so it can be imported by any bot. Sizing is
+fixed-fractional on worst-case loss, and it rounds DOWN (zero is a valid answer).
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 
@@ -28,6 +30,26 @@ def capital_from_env(env: dict | None = None) -> float:
     if not math.isfinite(value) or value <= 0:
         raise CapitalNotSet(f"{ENV_VAR} must be a positive number, got {raw!r}")
     return value
+
+
+def capital(env: dict | None = None, config_path: str | None = None) -> tuple:
+    """(capital, where it came from). ACCOUNT_CAPITAL_USD wins; otherwise config/capital.json's total_account_usd.
+
+    A value that is set but invalid is an error, never a reason to fall through to the other source.
+    """
+    env = os.environ if env is None else env
+    if str(env.get(ENV_VAR) or "").strip():
+        return capital_from_env(env), ENV_VAR
+    path = config_path or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "capital.json")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            total = json.load(fh).get("total_account_usd")
+    except (OSError, ValueError):
+        total = None
+    if isinstance(total, bool) or not isinstance(total, (int, float)) or not math.isfinite(total) or total <= 0:
+        raise CapitalNotSet(f"{ENV_VAR} is not set and config/capital.json has no total_account_usd. Set one of them. "
+                            "It is deliberately never guessed.")
+    return float(total), "config/capital.json"
 
 
 def spread_max_loss(width: float, credit: float, mult: float = 100) -> float:
