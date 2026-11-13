@@ -22,17 +22,25 @@ def summarize(pnls: list[float]) -> dict:
     n = len(pnls)
     if n == 0:
         return {"n": 0, "mean": None, "median": None, "win_rate": None, "profit_factor": None,
-                "cum": 0.0, "max_drawdown": 0.0}
+                "cum": 0.0, "max_drawdown": 0.0, "avg_win": None, "avg_loss": None,
+                "breakeven_win_rate": None, "expectancy_R": None}
     wins = [p for p in pnls if p > 0]
     losses = [p for p in pnls if p < 0]
     gross_loss = abs(sum(losses))
+    avg_win = (sum(wins) / len(wins)) if wins else None
+    avg_loss = (gross_loss / len(losses)) if losses else None   # magnitude, positive
+    # Win rate at which this payoff shape breaks even: avg_loss / (avg_win + avg_loss). Compare it with win_rate.
+    breakeven = (avg_loss / (avg_win + avg_loss)) if (avg_win is not None and avg_loss is not None) else None
+    # Expectancy in units of the average losing trade ("R"): mean P&L / avg_loss. Undefined with no losing trade.
+    expectancy_r = ((sum(pnls) / n) / avg_loss) if avg_loss else None
     cum = peak = max_dd = 0.0
     for p in pnls:
         cum += p
         peak = max(peak, cum)
         max_dd = max(max_dd, peak - cum)
     return {"n": n, "mean": sum(pnls) / n, "median": statistics.median(pnls), "win_rate": len(wins) / n,
-            "profit_factor": (sum(wins) / gross_loss) if gross_loss else None, "cum": cum, "max_drawdown": max_dd}
+            "profit_factor": (sum(wins) / gross_loss) if gross_loss else None, "cum": cum, "max_drawdown": max_dd,
+            "avg_win": avg_win, "avg_loss": avg_loss, "breakeven_win_rate": breakeven, "expectancy_R": expectancy_r}
 
 
 def bootstrap_ci(pnls: list[float], draws: int = 5000, seed: int = 20261104, level: float = 0.90):
@@ -112,6 +120,7 @@ def run(conn, config: dict, today: Optional[date] = None) -> dict:
             if age > stale:
                 res["flags"].append(f"STALE: no signal logged for {age} days (limit {stale}); check the bot is running")
         res["slippage"] = ledger.slippage_summary(conn, name)
+        res["cost_vs_prior"] = ledger.cost_vs_prior(conn, name)
         results.append(res)
 
     usd = sorted((t for name in config["bots"] for t in ledger.closed_trades(conn, name) if t["pnl_unit"] == "usd"),
@@ -128,15 +137,17 @@ def _fmt(x, nd=2):
 
 def render_markdown(report: dict) -> str:
     lines = [f"# Bot scorecard, as of {report['as_of']}", "",
-             "| Bot | Status | n | Mean | 90% CI of mean | Expected (after haircut) | Win | Cum | Max DD | Unit |",
-             "|---|---|---|---|---|---|---|---|---|---|"]
+             "| Bot | Status | n | Mean | 90% CI of mean | Expected (after haircut) | Win | Break-even win | Expectancy (R) | Cum | Max DD | Unit |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in report["results"]:
         s, ci = r["stats"], r["ci90"]
         ci_txt = "n/a" if not ci else "[%.2f, %.2f]" % ci
         win_txt = "n/a" if s["win_rate"] is None else "%.0f%%" % (100 * s["win_rate"])
+        be = s.get("breakeven_win_rate")
+        be_txt = "n/a" if be is None else "%.0f%%" % (100 * be)
         lines.append(f"| {r['bot']} | **{r['status']}** | {s['n']} | {_fmt(s['mean'])} | {ci_txt} | "
-                     f"{_fmt(r['expected_mean_after_haircut'])} | {win_txt} | {_fmt(s['cum'])} | "
-                     f"{_fmt(s['max_drawdown'])} | {r['unit'] or 'unset'} |")
+                     f"{_fmt(r['expected_mean_after_haircut'])} | {win_txt} | {be_txt} | {_fmt(s.get('expectancy_R'))} | "
+                     f"{_fmt(s['cum'])} | {_fmt(s['max_drawdown'])} | {r['unit'] or 'unset'} |")
     lines += ["", "## Why each status", ""]
     for r in report["results"]:
         lines.append(f"- **{r['bot']}**: " + "; ".join(r["reasons"]))
@@ -145,6 +156,10 @@ def render_markdown(report: dict) -> str:
         for sl in r["slippage"]:
             lines.append(f"  - slippage ({sl['action']}, n={sl['n']}): avg {sl['avg_per_unit']:.4f}/unit, "
                          f"total ${sl['total_usd']:.2f}")
+        for cp in r.get("cost_vs_prior", []):
+            lines.append(f"  - cost vs prior ({cp['structure']} {cp['action']}, n={cp['n']}): actual ${cp['avg_actual_cost_per_lot']:.2f}/lot "
+                         f"vs prior ${cp['avg_expected_cost_per_lot']:.2f}/lot (excess {cp['avg_excess_vs_prior_per_lot']:+.2f}; "
+                         f"{100 * cp['share_worse_than_prior']:.0f}% of fills worse than the prior)")
     c = report["combined_usd"]
     lines += ["", "## Combined USD book", "",
               f"{c['n']} closed USD trades, cumulative ${c['cum']:.2f}, max drawdown ${c['max_drawdown']:.2f}"

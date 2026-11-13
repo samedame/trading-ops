@@ -1,0 +1,439 @@
+{
+ "generated": "2026-11-09",
+ "unit": "USD per one-lot (one spread). Bid/ask crossing cost = sum over legs of (ask-bid)/2 x 100, i.e. mid-to-natural. Excludes commissions ($0.67/leg/contract in the repo model).",
+ "caveat": "From 16:00 end-of-day quotes 2010-2023 (Kaggle/OptionsDX-attributed). Live NBBO at 15:45 ET differs; use as a PRIOR to compare real fills against, not a promise.",
+ "structures": {
+  "spy_bps_p0_40d_14dte_5pct": {
+   "description": "SPY bull put spread, 40-delta short, 14-DTE, long 5% of spot below (spy-bps-bot)",
+   "source": "out/trades/P0_T0_natural.csv (real EOD SPY chain 2010-2023, 16:00 snapshot)",
+   "n_trades": 441,
+   "share_closed_before_expiry": 0.9523809523809523,
+   "entry_cost": {
+    "n": 441,
+    "p25": 1.5000000000000013,
+    "median": 2.499999999999991,
+    "p75": 3.4999999999999893,
+    "mean": 2.937641723356009
+   },
+   "exit_cost_when_closed_early": {
+    "n": 420,
+    "p25": 1.0000000000000009,
+    "median": 1.5000000000000013,
+    "p75": 2.5000000000000013,
+    "mean": 5.635714285714286
+   },
+   "round_trip_closed_early": {
+    "n": 420,
+    "p25": 3.0000000000000013,
+    "median": 4.000000000000005,
+    "p75": 6.5000000000000036,
+    "mean": 8.591666666666667
+   },
+   "recent_2019_2023": {
+    "entry_cost": {
+     "n": 190,
+     "p25": 1.5000000000000235,
+     "median": 2.500000000000002,
+     "p75": 3.5000000000000075,
+     "mean": 3.081578947368421
+    },
+    "exit_cost_when_closed_early": {
+     "n": 181,
+     "p25": 1.0000000000000009,
+     "median": 1.5000000000000013,
+     "p75": 2.500000000000001,
+     "mean": 7.582872928176796
+    },
+    "round_trip_closed_early": {
+     "n": 181,
+     "p25": 3.0000000000000138,
+     "median": 4.499999999999991,
+     "p75": 7.500000000000007,
+     "mean": 10.665745856353592
+    }
+   },
+   "by_year": {
+    "2010": {
+     "n": 14,
+     "entry_median": 1.749999999999996,
+     "round_trip_median": 3.0000000000000013
+    },
+    "2011": {
+     "n": 14,
+     "entry_median": 1.5,
+     "round_trip_median": 3.500000000000014
+    },
+    "2012": {
+     "n": 18,
+     "entry_median": 2.000000000000001,
+     "round_trip_median": 3.750000000000006
+    },
+    "2013": {
+     "n": 35,
+     "entry_median": 2.0000000000000004,
+     "round_trip_median": 3.5000000000000018
+    },
+    "2014": {
+     "n": 35,
+     "entry_median": 1.9999999999999991,
+     "round_trip_median": 4.000000000000002
+    },
+    "2015": {
+     "n": 34,
+     "entry_median": 3.0000000000000018,
+     "round_trip_median": 5.999999999999988
+    },
+    "2016": {
+     "n": 30,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.5000000000000018
+    },
+    "2017": {
+     "n": 28,
+     "entry_median": 2.0000000000000013,
+     "round_trip_median": 3.5000000000000013
+    },
+    "2018": {
+     "n": 43,
+     "entry_median": 3.0000000000000013,
+     "round_trip_median": 5.999999999999998
+    },
+    "2019": {
+     "n": 39,
+     "entry_median": 2.500000000000001,
+     "round_trip_median": 4.000000000000013
+    },
+    "2020": {
+     "n": 39,
+     "entry_median": 3.4999999999999867,
+     "round_trip_median": 5.750000000000005
+    },
+    "2021": {
+     "n": 40,
+     "entry_median": 2.749999999999997,
+     "round_trip_median": 4.749999999999998
+    },
+    "2022": {
+     "n": 36,
+     "entry_median": 3.0000000000000027,
+     "round_trip_median": 5.5
+    },
+    "2023": {
+     "n": 36,
+     "entry_median": 1.5000000000000013,
+     "round_trip_median": 2.5000000000000244
+    }
+   },
+   "expected_cost_per_lot": {
+    "open": 2.500000000000002,
+    "close": 1.5000000000000013,
+    "basis": "median of 2019-2023 trades"
+   }
+  },
+  "spy_bps_p1_40d_14dte_0p7pct": {
+   "description": "same rule, long 0.7% of spot below (deployability variant)",
+   "source": "out/trades/P1_T0_natural.csv (real EOD SPY chain 2010-2023, 16:00 snapshot)",
+   "n_trades": 381,
+   "share_closed_before_expiry": 0.9291338582677166,
+   "entry_cost": {
+    "n": 381,
+    "p25": 2.0000000000000018,
+    "median": 2.9999999999999916,
+    "p75": 4.0000000000000036,
+    "mean": 3.6653543307086616
+   },
+   "exit_cost_when_closed_early": {
+    "n": 354,
+    "p25": 1.0000000000000009,
+    "median": 1.5000000000000013,
+    "p75": 5.375000000000013,
+    "mean": 8.93361581920904
+   },
+   "round_trip_closed_early": {
+    "n": 354,
+    "p25": 3.499999999999991,
+    "median": 4.9999999999999964,
+    "p75": 10.000000000000007,
+    "mean": 12.65677966101695
+   },
+   "recent_2019_2023": {
+    "entry_cost": {
+     "n": 166,
+     "p25": 2.0000000000000018,
+     "median": 3.499999999999992,
+     "p75": 4.500000000000032,
+     "mean": 4.186746987951806
+    },
+    "exit_cost_when_closed_early": {
+     "n": 155,
+     "p25": 1.0000000000000009,
+     "median": 1.5000000000000013,
+     "p75": 11.249999999999982,
+     "mean": 13.0
+    },
+    "round_trip_closed_early": {
+     "n": 155,
+     "p25": 4.000000000000003,
+     "median": 5.999999999999995,
+     "p75": 15.24999999999998,
+     "mean": 17.241935483870964
+    }
+   },
+   "by_year": {
+    "2010": {
+     "n": 13,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.5000000000000018
+    },
+    "2011": {
+     "n": 13,
+     "entry_median": 1.4999999999999902,
+     "round_trip_median": 4.500000000000015
+    },
+    "2012": {
+     "n": 17,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.5000000000000004
+    },
+    "2013": {
+     "n": 25,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.500000000000003
+    },
+    "2014": {
+     "n": 28,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.5000000000000018
+    },
+    "2015": {
+     "n": 29,
+     "entry_median": 3.500000000000003,
+     "round_trip_median": 6.499999999999993
+    },
+    "2016": {
+     "n": 26,
+     "entry_median": 2.500000000000008,
+     "round_trip_median": 4.000000000000012
+    },
+    "2017": {
+     "n": 23,
+     "entry_median": 2.4999999999999964,
+     "round_trip_median": 3.500000000000003
+    },
+    "2018": {
+     "n": 41,
+     "entry_median": 4.500000000000015,
+     "round_trip_median": 9.500000000000007
+    },
+    "2019": {
+     "n": 34,
+     "entry_median": 3.0000000000000027,
+     "round_trip_median": 4.500000000000013
+    },
+    "2020": {
+     "n": 36,
+     "entry_median": 4.499999999999993,
+     "round_trip_median": 7.000000000000001
+    },
+    "2021": {
+     "n": 37,
+     "entry_median": 3.9999999999999813,
+     "round_trip_median": 7.000000000000006
+    },
+    "2022": {
+     "n": 31,
+     "entry_median": 4.0000000000000036,
+     "round_trip_median": 6.999999999999999
+    },
+    "2023": {
+     "n": 28,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.0000000000000027
+    }
+   },
+   "expected_cost_per_lot": {
+    "open": 3.499999999999992,
+    "close": 1.5000000000000013,
+    "basis": "median of 2019-2023 trades"
+   }
+  },
+  "premium_sleeve_30d_10d_30to45dte": {
+   "description": "SPY bull put spread 30-delta short / 10-delta long capped 10 wide, 30-45 DTE (Premium-Sleeve, ungated)",
+   "source": "out/trades/P2_T0_natural.csv (real EOD SPY chain 2010-2023, 16:00 snapshot)",
+   "n_trades": 931,
+   "share_closed_before_expiry": 0.9978517722878625,
+   "entry_cost": {
+    "n": 931,
+    "p25": 2.0000000000000018,
+    "median": 3.000000000000025,
+    "p75": 5.499999999999999,
+    "mean": 4.508055853920516
+   },
+   "exit_cost_when_closed_early": {
+    "n": 929,
+    "p25": 1.5000000000000013,
+    "median": 2.49999999999998,
+    "p75": 3.9999999999999982,
+    "mean": 5.965554359526372
+   },
+   "round_trip_closed_early": {
+    "n": 929,
+    "p25": 3.9999999999999982,
+    "median": 5.999999999999995,
+    "p75": 9.50000000000002,
+    "mean": 10.479009687836383
+   },
+   "recent_2019_2023": {
+    "entry_cost": {
+     "n": 385,
+     "p25": 2.000000000000024,
+     "median": 3.500000000000003,
+     "p75": 5.50000000000006,
+     "mean": 5.142857142857145
+    },
+    "exit_cost_when_closed_early": {
+     "n": 383,
+     "p25": 1.5000000000000013,
+     "median": 2.499999999999991,
+     "p75": 4.249999999999998,
+     "mean": 9.275456919060053
+    },
+    "round_trip_closed_early": {
+     "n": 383,
+     "p25": 4.249999999999998,
+     "median": 6.000000000000016,
+     "p75": 10.499999999999998,
+     "mean": 14.434725848563973
+    }
+   },
+   "by_year": {
+    "2010": {
+     "n": 34,
+     "entry_median": 2.250000000000001,
+     "round_trip_median": 4.5
+    },
+    "2011": {
+     "n": 27,
+     "entry_median": 2.000000000000013,
+     "round_trip_median": 3.9999999999999925
+    },
+    "2012": {
+     "n": 35,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.9999999999999982
+    },
+    "2013": {
+     "n": 51,
+     "entry_median": 2.4999999999999885,
+     "round_trip_median": 4.499999999999989
+    },
+    "2014": {
+     "n": 78,
+     "entry_median": 4.5000000000000036,
+     "round_trip_median": 8.499999999999998
+    },
+    "2015": {
+     "n": 82,
+     "entry_median": 6.499999999999995,
+     "round_trip_median": 10.00000000000001
+    },
+    "2016": {
+     "n": 77,
+     "entry_median": 3.0000000000000027,
+     "round_trip_median": 5.000000000000016
+    },
+    "2017": {
+     "n": 68,
+     "entry_median": 2.500000000000002,
+     "round_trip_median": 4.000000000000002
+    },
+    "2018": {
+     "n": 94,
+     "entry_median": 4.2500000000000036,
+     "round_trip_median": 8.000000000000007
+    },
+    "2019": {
+     "n": 81,
+     "entry_median": 2.999999999999986,
+     "round_trip_median": 4.500000000000015
+    },
+    "2020": {
+     "n": 83,
+     "entry_median": 5.499999999999972,
+     "round_trip_median": 9.50000000000003
+    },
+    "2021": {
+     "n": 71,
+     "entry_median": 4.999999999999982,
+     "round_trip_median": 8.499999999999996
+    },
+    "2022": {
+     "n": 78,
+     "entry_median": 4.0000000000000036,
+     "round_trip_median": 8.750000000000014
+    },
+    "2023": {
+     "n": 72,
+     "entry_median": 2.0000000000000018,
+     "round_trip_median": 3.500000000000014
+    }
+   },
+   "expected_cost_per_lot": {
+    "open": 3.500000000000003,
+    "close": 2.499999999999991,
+    "basis": "median of 2019-2023 trades"
+   }
+  },
+  "condor_10dte_15d_5d": {
+   "description": "10-DTE SPY iron condor (C10)",
+   "source": "options_research 2/results/quote_matched_costs.csv (report values; p25/p75 not available there)",
+   "n_trades": 557,
+   "round_trip_closed_early": {
+    "n": 557,
+    "p25": null,
+    "median": 5.00000000000001,
+    "p75": null,
+    "mean": 10.364452423698387
+   },
+   "expected_cost_per_lot": {
+    "open": 2.500000000000005,
+    "close": 2.500000000000005,
+    "basis": "median round trip split 50/50 (assumption)"
+   }
+  },
+  "condor_45dte_20d_5d": {
+   "description": "45-DTE SPY iron condor (C45)",
+   "source": "options_research 2/results/quote_matched_costs.csv (report values; p25/p75 not available there)",
+   "n_trades": 135,
+   "round_trip_closed_early": {
+    "n": 135,
+    "p25": null,
+    "median": 7.000000000000057,
+    "p75": null,
+    "mean": 12.129629629629635
+   },
+   "expected_cost_per_lot": {
+    "open": 3.5000000000000284,
+    "close": 3.5000000000000284,
+    "basis": "median round trip split 50/50 (assumption)"
+   }
+  },
+  "put_spread_45dte_20d_5d": {
+   "description": "45-DTE SPY put vertical 20d/5d (options_research 2, P45)",
+   "source": "options_research 2/results/quote_matched_costs.csv (report values; p25/p75 not available there)",
+   "n_trades": 169,
+   "round_trip_closed_early": {
+    "n": 169,
+    "p25": null,
+    "median": 3.500000000000007,
+    "p75": null,
+    "mean": 5.381656804733725
+   },
+   "expected_cost_per_lot": {
+    "open": 1.7500000000000036,
+    "close": 1.7500000000000036,
+    "basis": "median round trip split 50/50 (assumption)"
+   }
+  }
+ }
+}
