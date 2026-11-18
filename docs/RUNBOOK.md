@@ -38,6 +38,10 @@ The script sets the secret under whatever name each repo's workflows use (for ex
 - `python -m trading_ops slippage`. If average slippage per fill is more than a third of the edge you are claiming, the edge is gone.
 - Write one line per bot in your notes: status, n, anything flagged.
 
+## Every month (10 minutes): the benchmark
+
+Add the month's deposits to `ledger/benchmark/flows.csv`, the month-end equity (or every day's) to `equity.csv`, realised gains to `realized.csv`, run `python scripts/fetch_benchmark_prices.py` then `python -m trading_ops benchmark`. Read the label, not the headline return. Details: `docs/BENCHMARK.md`.
+
 ## What the statuses mean and what to do
 
 | Status | Meaning | Action |

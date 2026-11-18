@@ -10,6 +10,10 @@ A bot may only be funded with real capital when ALL of these are true:
 4. The bot has run through at least one VIX > 25 episode, or you have written down that you accept not having seen one.
 5. You have written down, in advance, the cumulative loss at which you stop.
 
+## The claim gate
+
+No document, alert or message from this project may say you are beating the S&P 500 unless `python -m trading_ops benchmark` reports `CLAIM_PERMITTED_UNPROVEN` or `CLAIM_SUPPORTED`: ahead of a shadow VOO funded with the same dollars after fees and tax (see `docs/BENCHMARK.md`). Without `ledger/benchmark/realized.csv` the answer is always no.
+
 ## Per-bot status and next gate
 
 | Bot | Evidence today | What it must show next | Stop / retire rule |

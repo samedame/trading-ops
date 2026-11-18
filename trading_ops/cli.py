@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import freeze, ibs_import, ledger, scorecard, sizing, snapshot
+from . import benchmark, freeze, ibs_import, ledger, scorecard, sizing, snapshot
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -83,6 +83,13 @@ def build_parser() -> argparse.ArgumentParser:
     ib.add_argument("--cost-bp-per-side", type=float, default=ibs_import.COST_BP_PER_SIDE)
     ib.add_argument("--dry-run", action="store_true", help="value the trades and print them; write nothing")
 
+    bm = sub.add_parser("benchmark", help="your account vs a shadow VOO funded with the same dollars (roadmap R3)")
+    for key in ("flows", "equity", "costs", "realized", "prices", "rates"):
+        bm.add_argument(f"--{key}", help=f"csv path (default under ledger/benchmark or data/benchmark)")
+    bm.add_argument("--st-rate", type=float, default=0.24, help="short-term tax rate for the estimate (default 24%%)")
+    bm.add_argument("--lt-rate", type=float, default=0.15, help="long-term tax rate for the estimate (default 15%%)")
+    bm.add_argument("--json", action="store_true")
+
     fr = sub.add_parser("freeze")
     fs = fr.add_subparsers(dest="kind", required=True)
     fs.add_parser("status")
@@ -147,6 +154,21 @@ def main(argv: list[str] | None = None) -> int:
         if res["price_errors"] and not res["valued"]:
             print("error: no opening prices could be fetched, so nothing was valued", file=sys.stderr)
             return 1
+    elif args.cmd == "benchmark":
+        paths = benchmark.default_paths(ROOT)
+        for key in ("flows", "equity", "costs", "realized", "prices", "rates"):
+            given = getattr(args, key)
+            if given:
+                if not Path(given).exists():
+                    print(f"error: {given}: file not found", file=sys.stderr)
+                    return 1
+                paths[key] = Path(given)
+        try:
+            rep = benchmark.run_from_files(paths, args.st_rate, args.lt_rate)
+        except benchmark.BenchmarkError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps(rep, indent=2, default=str) if args.json else benchmark.render_markdown(rep))
     elif args.cmd == "freeze":
         cfg = _load(None, "freeze.json")
         if args.kind == "status":
