@@ -10,6 +10,7 @@ Measurement, sizing and journaling for your bot fleet. It records and checks; it
 | IBS import | `trading_ops/ibs_import.py` | Loads the IBS callout bot's closed trades into the ledger in bp, valued at the next open as the bot's own rule fills them. |
 | Scorecard | `trading_ops/scorecard.py` | Per-bot live-vs-backtest verdict using the thresholds your own verdicts set. |
 | Cost priors | `config/cost_priors.json` | Expected bid/ask crossing cost per one-lot by structure (from real SPY chains, 2010-2023). Fills carry `expected_cost_per_lot`; the scorecard compares actual vs prior and shows break-even win rate and expectancy in R. |
+| Benchmark ledger | `trading_ops/benchmark.py`, `docs/BENCHMARK.md` | Your real account against a shadow VOO funded with the same dollars (time-weighted and money-weighted, T-bill line, after-tax estimate). Enforces the rule that no "beating the S&P 500" claim is allowed unless you are ahead after fees and tax. Account files stay in git-ignored `ledger/benchmark/`. |
 | Freeze | `trading_ops/freeze.py` | 90-day build-freeze tracker with an auditable exception log. |
 | Docs | `docs/` | Evidence gates, redundancy map, runbook. |
 

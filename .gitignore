@@ -3,3 +3,5 @@ __pycache__/
 *.db
 *.db-journal
 .env
+# Your real account numbers. This repo is public: never commit these. Templates live in templates/benchmark/.
+ledger/benchmark/*.csv
